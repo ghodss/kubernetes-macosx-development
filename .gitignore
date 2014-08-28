@@ -1,0 +1,23 @@
+# OSX leaves these everywhere on SMB shares
+._*
+
+# Emacs save files
+*~
+
+# Vim-related files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+
+# Go test binaries
+*.test
+
+# Mercurial files
+**/.hg
+**/.hg*
+
+# Vagrant
+.vagrant
+network_closure.sh
