@@ -38,7 +38,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
       config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
     end
 
-    # Uncomment below to enable NFS for sharing the host machine into the coreos-vagrant VM.
     unless $gopath.empty?
       $gopath_src_dir = File.join($gopath, "/src")
       config.vm.synced_folder $gopath_src_dir, "/home/vagrant/gopath/src", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']

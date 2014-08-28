@@ -2,16 +2,12 @@
 
 Kubernetes only runs on Linux, which means developing on Mac is a bit awkward. Go, however, runs fine on Mac, so here is the flow that this Vagrant configuration aims to enable:
 
-* Checkout Kubernetes to your Mac's GOPATH using `go get github.com/GoogleCloudPlatform/kubernetes`.
-* Edit source files on Mac and use `go build` and `go test` (for unit tests) directly on your Mac.
+* Edit source files on your Mac's checkout of Kubernetes (in your GOPATH) and use `go build` and `go test` (for unit tests) directly on your Mac.
 * `vagrant up` to:
  * Launch a Fedora 20 VM on your Mac that has Go and Docker installed on the IP 10.240.1.2.
  * Mount your gopath's src directory into the VM at /home/vagrant/gopath/src to share your Mac's code with the VM.
  * Enable the ability to run a kubernetes cluster using hack/local-up-cluster.sh.
-
-In addition, the config:
-
- * Forwards Docker's port (2375) to localhost to emulate running Docker directly on your Mac (and to eliminate the need for boot2docker to build and release Kubernetes).
+ * Use Docker in the VM for building and releasing Kubernetes by forwarding Docker's port (2375) to localhost, thereby eliminating the need for boot2docker.
 
 # Getting started
 
