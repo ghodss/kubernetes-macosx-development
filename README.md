@@ -9,8 +9,6 @@ Kubernetes only runs on Linux, which means developing on Mac is a bit awkward. G
  * Enable the ability to run a kubernetes cluster using hack/local-up-cluster.sh.
  * Use Docker in the VM for building and releasing Kubernetes by forwarding Docker's port (2375) to localhost, thereby eliminating the need for boot2docker.
 
-Note that when you use this setup, all compiled binaries that Kubernetes uses will be compiled for Linux and therefore incompabile on Mac. E.g., cluster/kubecfg.sh is now only usable in the VM.
-
 # Getting started
 
 Git clone this repo then run `vagrant up` inside. That should be it. If you want to tweak the config, copy `config.sample.rb` to `config.rb` and make any modifications you like.
@@ -18,6 +16,8 @@ Git clone this repo then run `vagrant up` inside. That should be it. If you want
 Once you've done `vagrant up`, use `vagrant ssh` to ssh into the VM. Enter the `k` command (which is an alias to cd into the kubernetes directory), then enter `hack/local-up-cluster.sh` to start up a cluster.
 
 # Warnings
+
+Note that when you use this setup, all compiled binaries that Kubernetes uses will be compiled for Linux and therefore incompabile on Mac. E.g., cluster/kubecfg.sh is now only usable in the VM.
 
 This script WILL `go get` [godep](https://github.com/tools/godep) and [etcd](https://github.com/coreos/etcd) to your gopath if they are not already there.
 
