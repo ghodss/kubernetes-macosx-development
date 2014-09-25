@@ -31,7 +31,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
     config.vm.box = "fedora20"
     config.vm.box_url = "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_fedora-20_chef-provisionerless.box"
 
-    ip = "10.240.1.2"
+    ip = "10.245.1.2"
     config.vm.network :private_network, ip: ip
 
     if $expose_docker_tcp

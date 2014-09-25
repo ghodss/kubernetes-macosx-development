@@ -34,6 +34,8 @@ echo "export GOPATH=~/gopath" >> /etc/bashrc
 echo "export PATH=$PATH:/home/vagrant/gopath/bin" >> /etc/bashrc
 # So you can start using cluster/kubecfg.sh right away.
 echo "export KUBERNETES_PROVIDER=local" >> /etc/bashrc
+# So you can access apiserver from your host machine.
+echo "export API_HOST=10.245.1.2" >> /etc/bashrc
 # For convenience.
 echo "alias k=\"cd /home/vagrant/gopath/src/github.com/GoogleCloudPlatform/kubernetes\"" >> /etc/bashrc
 
