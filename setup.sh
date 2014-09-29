@@ -38,6 +38,7 @@ echo "export KUBERNETES_PROVIDER=local" >> /etc/bashrc
 echo "export API_HOST=10.245.1.2" >> /etc/bashrc
 # For convenience.
 echo "alias k=\"cd /home/vagrant/gopath/src/github.com/GoogleCloudPlatform/kubernetes\"" >> /etc/bashrc
+echo "alias killcluster=\"ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print \$2}' | xargs kill\"" >> /etc/bashrc
 
 # The NFS mount is initially owned by root - it should be owned by vagrant.
 chown vagrant.vagrant gopath
