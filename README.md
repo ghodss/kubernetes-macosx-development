@@ -17,9 +17,7 @@ If you want to tweak the config, copy `config.sample.rb` to `config.rb` and make
 
 # Warnings
 
-Note that when you use this setup, all compiled binaries in $GOPATH/bin that Kubernetes uses will be compiled for Linux and therefore incompabile on Mac. E.g., $GOPATH/bin/kubecfg will now only be usable in the VM.
-
-Running `vagrant up` MAY modify your $GOPATH: `go get` [godep](https://github.com/tools/godep) and [etcd](https://github.com/coreos/etcd) will both be run in your $GOPATH.
+Running `vagrant up` MAY modify your $GOPATH: `go get` [github.com/tools/godep](https://github.com/tools/godep) and [github.com/coreos/etcd](https://github.com/coreos/etcd) will both be run in your $GOPATH.
 
 This configuration has only been explicitly tested on Mac OS X 10.9.3. It should work on other versions but no guarantees.
 

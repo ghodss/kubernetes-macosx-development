@@ -4,8 +4,15 @@ set -e
 echo "Setting up VM..."
 
 
-echo "Installing system tools..."
-yum -y install yum-fastestmirror git mercurial
+echo "Installing system tools and docker..."
+# Source control tools are so go get works properly.
+yum -y install yum-fastestmirror git mercurial subversion docker-io
+# Docker setup.
+systemctl start docker
+systemctl enable docker
+# Supposedly you don't have to do this starting docker 1.0
+# (Fedora 20 is currently 1.1.2) but I found it necessary.
+usermod -a -G docker vagrant
 echo "Complete."
 
 
@@ -18,34 +25,30 @@ rm $GOBINARY
 echo "Complete."
 
 
-echo "Installing docker..."
-yum -y install docker-io
-systemctl start docker
-systemctl enable docker
-# Supposedly you don't have to do this starting docker 1.0
-# (Fedora 20 is currently 1.1.2) but I found it necessary.
-usermod -a -G docker vagrant
-echo "Complete."
-
-
-echo "Setting gopath, adding gopath/bin to PATH, and other config..."
-
-echo "export GOPATH=~/gopath" >> /etc/bashrc
-echo "export PATH=$PATH:/home/vagrant/gopath/bin" >> /etc/bashrc
+echo "Creating /etc/profile.d/k8s.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
+cat >/etc/profile.d/k8s.sh << 'EOL'
+# Golang setup.
+export GOPATH=~/gopath
+export PATH=$PATH:~/gopath/bin
 # So you can start using cluster/kubecfg.sh right away.
-echo "export KUBERNETES_PROVIDER=local" >> /etc/bashrc
+export KUBERNETES_PROVIDER=local
 # So you can access apiserver from your host machine.
-echo "export API_HOST=10.245.1.2" >> /etc/bashrc
-# For convenience.
-echo "alias k=\"cd /home/vagrant/gopath/src/github.com/GoogleCloudPlatform/kubernetes\"" >> /etc/bashrc
-echo "alias killcluster=\"ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print \$2}' | xargs kill\"" >> /etc/bashrc
-echo "alias kstart=\"k && killcluster; hack/local-up-cluster.sh\"" >> /etc/bashrc
+export API_HOST=10.245.1.2
 
-# The NFS mount is initially owned by root - it should be owned by vagrant.
-chown vagrant.vagrant gopath
+# For convenience.
+alias k="cd ~/gopath/src/github.com/GoogleCloudPlatform/kubernetes"
+alias killcluster="ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print $2}' | xargs kill"
+alias kstart="k && killcluster; hack/local-up-cluster.sh"
+EOL
 
 # For some reason /etc/hosts does not alias localhost to 127.0.0.1.
 echo "127.0.0.1 localhost" >> /etc/hosts
+
+# kubelet complains if this directory doesn't exist.
+mkdir /var/lib/kubelet
+
+# The NFS mount is initially owned by root - it should be owned by vagrant.
+chown vagrant.vagrant /home/vagrant/gopath
 
 echo "Complete."
 
@@ -57,9 +60,8 @@ export GOPATH=/home/vagrant/gopath
 # directory into the VM, you can run `go install <package>` on the Fedora VM
 # and it will correctly compile <package> and install it into
 # /home/vagrant/gopath/bin.
-go get github.com/tools/godep && go install github.com/tools/godep
-go get github.com/coreos/etcd && go install github.com/coreos/etcd
+sudo -u vagrant go get github.com/tools/godep && sudo -u vagrant go install github.com/tools/godep
+sudo -u vagrant go get github.com/coreos/etcd && sudo -u vagrant go install github.com/coreos/etcd
 echo "Complete."
-
 
 echo "Setup complete."
