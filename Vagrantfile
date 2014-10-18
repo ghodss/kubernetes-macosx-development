@@ -24,6 +24,11 @@ if $gopath.empty? && ENV["GOPATH"]
   $gopath = ENV["GOPATH"]
 end
 
+# If $gopath is still empty, abort.
+if $gopath.empty?
+  abort("GOPATH must be set (or create a config.rb to specify it manually).\n")
+end
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
   c.vm.define vm_name = "k8s-env" do |config|
     config.vm.hostname = vm_name
