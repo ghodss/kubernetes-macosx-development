@@ -37,7 +37,7 @@ export API_HOST=10.245.1.2
 
 # For convenience.
 alias k="cd ~/gopath/src/github.com/GoogleCloudPlatform/kubernetes"
-alias killcluster="ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print $2}' | xargs kill"
+alias killcluster="ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print \$2}' | xargs kill"
 alias kstart="k && killcluster; hack/local-up-cluster.sh"
 EOL
 
