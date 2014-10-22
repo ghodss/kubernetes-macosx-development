@@ -10,6 +10,8 @@ yum -y install yum-fastestmirror git mercurial subversion docker-io
 # Docker setup.
 systemctl start docker
 systemctl enable docker
+# Make sure docker is listening on all network interfaces.
+echo " -H tcp://0.0.0.0:2375" >> /etc/sysconfig/docker
 # Supposedly you don't have to do this starting docker 1.0
 # (Fedora 20 is currently 1.1.2) but I found it necessary.
 usermod -a -G docker vagrant
