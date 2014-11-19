@@ -21,3 +21,6 @@ Session.vim
 # Vagrant
 .vagrant
 network_closure.sh
+
+# Ignore boxes that Vagrant creates
+*.box

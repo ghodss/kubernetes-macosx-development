@@ -13,6 +13,8 @@ Kubernetes comes with a great script that lets you run an entire cluster locally
 
 Git clone this repo, `cd` into it then run `vagrant up` inside. That will start up the VM and bootstrap it with docker, golang and kubernetes (amongst other things; see [setup.sh](setup.sh) for the complete bootstrapping process). Use `vagrant ssh` to SSH into the VM. Enter the `k` command (which is an alias to cd into the kubernetes directory), then enter `hack/local-up-cluster.sh` to start up a cluster.
 
+If you want to use kubectl from your Mac, run `export KUBERNETES_MASTER=10.245.1.2:8080`.
+
 If you want to tweak the config, copy `config.sample.rb` to `config.rb` and make any modifications you like.
 
 # Warnings
