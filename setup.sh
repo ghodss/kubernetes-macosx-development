@@ -56,15 +56,17 @@ echo "Complete."
 
 
 echo "Installing godep and etcd..."
+# Disable requiring TTY for the sudo commands below.
 sed -i 's/requiretty/\!requiretty/g' /etc/sudoers
+# TODO Should we source k8s.sh instead?
 export GOPATH=/home/vagrant/gopath
 # Go will compile on both Mac OS X and Linux, but it will create different
 # compilation artifacts on the two platforms. By mounting only GOPATH's src
 # directory into the VM, you can run `go install <package>` on the Fedora VM
 # and it will correctly compile <package> and install it into
 # /home/vagrant/gopath/bin.
-sudo -u vagrant go get github.com/tools/godep && sudo -u vagrant go install github.com/tools/godep
-sudo -u vagrant go get github.com/coreos/etcd && sudo -u vagrant go install github.com/coreos/etcd
+sudo -u vagrant -E go get github.com/tools/godep && sudo -u vagrant -E go install github.com/tools/godep
+sudo -u vagrant -E go get github.com/coreos/etcd && sudo -u vagrant -E go install github.com/coreos/etcd
 echo "Complete."
 
 echo "Setup complete."
