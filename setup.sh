@@ -56,6 +56,7 @@ echo "Complete."
 
 
 echo "Installing godep and etcd..."
+sed -i 's/requiretty/\!requiretty/g' /etc/sudoers
 export GOPATH=/home/vagrant/gopath
 # Go will compile on both Mac OS X and Linux, but it will create different
 # compilation artifacts on the two platforms. By mounting only GOPATH's src
