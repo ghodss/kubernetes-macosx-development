@@ -34,7 +34,3 @@ If you want to tweak the Vagrant config, copy `config.sample.rb` to `config.rb` 
 Running `vagrant up` MAY modify your Mac's GOPATH: `go get` [github.com/tools/godep](https://github.com/tools/godep) and [github.com/coreos/etcd](https://github.com/coreos/etcd) will both be run in your GOPATH.
 
 This configuration has only been explicitly tested on Mac OS X 10.9. It should work on other versions but no guarantees.
-
-# TODO
-
-* Every time the Fedora 20 box is initially created, the first time `yum install` runs there is a 30-60 second delay while the first few mirrors fail. It would be great to figure out how to directly use a working mirror while still using fastestmirror for subsequent yum install commands.
