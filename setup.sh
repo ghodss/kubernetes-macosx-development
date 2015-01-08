@@ -6,7 +6,9 @@ echo "Setting up VM..."
 
 echo "Installing system tools and docker..."
 # Source control tools are so go get works properly.
-yum -y install yum-fastestmirror git mercurial subversion docker-io
+# TODO Currently (v0.7.3) Kubernetes only works with etcd 0.4.6 - later
+# remove specific etcd version from yum install command.
+yum -y install yum-fastestmirror git mercurial subversion docker-io etcd-0.4.6-6.fc20
 # Docker setup.
 systemctl start docker
 systemctl enable docker
@@ -66,7 +68,6 @@ export GOPATH=/home/vagrant/gopath
 # and it will correctly compile <package> and install it into
 # /home/vagrant/gopath/bin.
 sudo -u vagrant -E go get github.com/tools/godep && sudo -u vagrant -E go install github.com/tools/godep
-sudo -u vagrant -E go get github.com/coreos/etcd && sudo -u vagrant -E go install github.com/coreos/etcd
 echo "Complete."
 
 echo "Setup complete."

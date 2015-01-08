@@ -31,6 +31,6 @@ If you want to tweak the Vagrant config, copy `config.sample.rb` to `config.rb` 
 
 # Warnings
 
-Running `vagrant up` MAY modify your Mac's GOPATH: `go get` [github.com/tools/godep](https://github.com/tools/godep) and [github.com/coreos/etcd](https://github.com/coreos/etcd) will both be run in your GOPATH.
+Running `vagrant up` MAY modify your Mac's GOPATH: `go get` [github.com/tools/godep](https://github.com/tools/godep) will both be run in your GOPATH.
 
 This configuration has only been explicitly tested on Mac OS X 10.9. It should work on other versions but no guarantees.
