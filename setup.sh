@@ -9,6 +9,8 @@ echo "Installing system tools and docker..."
 # TODO Currently (v0.7.3) Kubernetes only works with etcd 0.4.6 - later
 # remove specific etcd version from yum install command.
 yum -y install yum-fastestmirror git mercurial subversion docker-io etcd-0.4.6-6.fc20
+# Packages useful for testing/interacting with containers.
+yum -y install curl nc
 # Docker setup.
 systemctl start docker
 systemctl enable docker
