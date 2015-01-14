@@ -37,8 +37,11 @@ export GOPATH=~/gopath
 export PATH=$PATH:~/gopath/bin
 # So you can start using cluster/kubecfg.sh right away.
 export KUBERNETES_PROVIDER=local
-# So you can access apiserver from your host machine.
+# Run apiserver on 10.245.1.2 (instead of 127.0.0.1) so you can access
+# apiserver from your OS X host machine.
 export API_HOST=10.245.1.2
+# So you can access apiserver from kubectl in the VM.
+export KUBERNETES_MASTER=10.245.1.2:8080
 
 # For convenience.
 alias k="cd ~/gopath/src/github.com/GoogleCloudPlatform/kubernetes"

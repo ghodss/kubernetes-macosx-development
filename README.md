@@ -25,12 +25,12 @@ Now you can push branches to your fork and issue pull requests against Kubernete
 
 Once you have a Kubernetes checkout in your GOPATH, git clone this repo (does not need to be in your GOPATH), `cd` into it then run `vagrant up` inside. That will start up the VM and bootstrap it with docker, golang and a mount of your kubernetes checkout (amongst other things; see [setup.sh](setup.sh) for the complete bootstrapping process). Use `vagrant ssh` to SSH into the VM. Enter the `k` command (which is an alias to cd into the kubernetes directory), then enter `hack/local-up-cluster.sh` to start up a cluster.
 
-If you want to use kubectl from your Mac, run `export KUBERNETES_MASTER=10.245.1.2:8080`.
+The kubernetes apiserver is run on 10.245.1.2, not on 127.0.0.1, in order to enable access from your OS X host machine. If you want to use kubectl from your Mac, run `export KUBERNETES_MASTER=10.245.1.2:8080` (the VM's environment is already preconfigured as such).
 
 If you want to tweak the Vagrant config, copy `config.sample.rb` to `config.rb` and make any modifications you like.
 
 # Warnings
 
-Running `vagrant up` MAY modify your Mac's GOPATH: `go get` [github.com/tools/godep](https://github.com/tools/godep) will both be run in your GOPATH.
+Running `vagrant up` MAY modify your Mac's GOPATH: `go get` [github.com/tools/godep](https://github.com/tools/godep) will be run in your GOPATH.
 
 This configuration has only been explicitly tested on Mac OS X 10.9. It should work on other versions but no guarantees.
