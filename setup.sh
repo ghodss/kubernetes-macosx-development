@@ -16,7 +16,7 @@ systemctl enable docker
 # Set docker daemon comand line options. Keep in mind that at this point this
 # overrides any existing options. This is overridden to make sure docker is
 # listening on all network interfaces.
-echo "OPTIONS=--selinux-enabled -H tcp://0.0.0.0:2375" > /etc/sysconfig/docker
+echo "OPTIONS=--selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375" > /etc/sysconfig/docker
 # Supposedly you don't have to do this starting docker 1.0
 # (Fedora 20 is currently 1.1.2) but I found it necessary.
 usermod -a -G docker vagrant
