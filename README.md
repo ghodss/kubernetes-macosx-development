@@ -15,7 +15,7 @@ You must have the following requirements:
 
 * Virtualbox (https://www.virtualbox.org/)
 * Vagrant (https://www.vagrantup.com/)
-* Go and a proper GOPATH on your Mac. (See https://golang.org/doc/code.html for more information.)
+* Go and a proper GOPATH on your Mac (see https://golang.org/doc/code.html for more information)
 
 Next, install Kubernetes to your GOPATH by running `go get github.com/GoogleCloudPlatform/kubernetes`. If you want to write and contribute code, fork Kubernetes with your user on GitHub, and add your repo as a remote to your local checkout by running:
 
