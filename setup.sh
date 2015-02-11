@@ -7,30 +7,36 @@ echo "Setting up VM..."
 echo "Installing system tools and docker..."
 # Packages useful for testing/interacting with containers and
 # source control tools are so go get works properly.
-# TODO Currently (v0.7.3) Kubernetes only works with etcd 0.4.6 - later
-# remove specific etcd version from yum install command.
-yum -y install yum-fastestmirror git mercurial subversion docker-io etcd-0.4.6-6.fc20 curl nc
-# Docker setup.
-systemctl start docker
-systemctl enable docker
+yum -y install yum-fastestmirror git mercurial subversion docker-io curl nc
 # Set docker daemon comand line options. Keep in mind that at this point this
 # overrides any existing options. This is overridden to make sure docker is
 # listening on all network interfaces.
 echo "OPTIONS=--selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375" > /etc/sysconfig/docker
-# Supposedly you don't have to do this starting docker 1.0
-# (Fedora 20 is currently 1.1.2) but I found it necessary.
-usermod -a -G docker vagrant
+# Start docker.
+systemctl start docker
+# Start docker on startup.
+systemctl enable docker
 echo "Complete."
 
 
-echo "Installing go 1.3.1..."
-GOBINARY=go1.3.1.linux-amd64.tar.gz
+echo "Installing go 1.4.1..."
+GOBINARY=go1.4.1.linux-amd64.tar.gz
 wget -q https://storage.googleapis.com/golang/$GOBINARY
 tar -C /usr/local/ -xzf $GOBINARY
 ln -s /usr/local/go/bin/* /usr/bin/
 rm $GOBINARY
 echo "Complete."
 
+echo "Installing etcd 2.0.0..."
+ETCDBINARY=etcd-v2.0.0-linux-amd64.tar.gz
+wget -q https://github.com/coreos/etcd/releases/download/v2.0.0/$ETCDBINARY
+tar -C /usr/local/ -xzf $ETCDBINARY
+mv /usr/local/etcd-v2.0.0-linux-amd64 /usr/local/etcd
+ln -s /usr/local/etcd/etcd /usr/bin/etcd
+ln -s /usr/local/etcd/etcd-migrate /usr/bin/etcd-migrate
+ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
+rm $ETCDBINARY
+echo "Complete."
 
 echo "Creating /etc/profile.d/k8s.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
 cat >/etc/profile.d/k8s.sh << 'EOL'
