@@ -43,6 +43,8 @@ cat >/etc/profile.d/k8s.sh << 'EOL'
 # Golang setup.
 export GOPATH=~/gopath
 export PATH=$PATH:~/gopath/bin
+# So docker works without sudo.
+export DOCKER_HOST=127.0.0.1:2375
 # So you can start using cluster/kubecfg.sh right away.
 export KUBERNETES_PROVIDER=local
 # Run apiserver on 10.245.1.2 (instead of 127.0.0.1) so you can access
