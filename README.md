@@ -39,4 +39,6 @@ Running `vagrant up` MAY modify your Mac's GOPATH: `go get` [github.com/tools/go
 
 Sometimes the `$GOPATH/src` NFS mount gets wedged and you get strange errors like `Boffset: unknown state 0`, `Bseek: unknown state 0`, or that the mount isn't working. If this happens just run `vagrant reload` which will shut down and restart the VM and should fix the mount errors.
 
+If you ever have trouble compiling, try running `make clean` in the kubernetes source directory. It can solve many issues.
+
 This configuration has only been explicitly tested on Mac OS X 10.9. It should work on other versions but no guarantees.
