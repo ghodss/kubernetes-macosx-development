@@ -7,7 +7,7 @@ echo "Setting up VM..."
 echo "Installing system tools and docker..."
 # Packages useful for testing/interacting with containers and
 # source control tools are so go get works properly.
-yum -y install yum-fastestmirror git mercurial subversion docker-io curl nc
+yum -y install yum-fastestmirror git mercurial subversion docker-io curl nc gcc
 # Set docker daemon comand line options. Keep in mind that at this point this
 # overrides any existing options. This is overridden to make sure docker is
 # listening on all network interfaces.
@@ -19,8 +19,8 @@ systemctl enable docker
 echo "Complete."
 
 
-echo "Installing go 1.4.1..."
-GOBINARY=go1.4.1.linux-amd64.tar.gz
+echo "Installing go 1.4.2..."
+GOBINARY=go1.4.2.linux-amd64.tar.gz
 wget -q https://storage.googleapis.com/golang/$GOBINARY
 tar -C /usr/local/ -xzf $GOBINARY
 ln -s /usr/local/go/bin/* /usr/bin/
