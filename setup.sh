@@ -1,6 +1,9 @@
 #!/bin/bash
 
+# Everything in this file is run as root on the VM.
+
 set -e
+
 echo "Setting up VM..."
 
 
@@ -9,8 +12,8 @@ echo "Installing system tools and docker..."
 # source control tools are so go get works properly.
 yum -y install yum-fastestmirror git mercurial subversion docker-io curl nc
 # Set docker daemon comand line options. Keep in mind that at this point this
-# overrides any existing options. This is overridden to make sure docker is
-# listening on all network interfaces.
+# overrides any existing options supplied by the RPM. This is overridden to
+# make sure docker is listening on all network interfaces.
 echo "OPTIONS=--selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375" > /etc/sysconfig/docker
 # Start docker.
 systemctl start docker
@@ -19,19 +22,22 @@ systemctl enable docker
 echo "Complete."
 
 
-echo "Installing go 1.4.1..."
-GOBINARY=go1.4.1.linux-amd64.tar.gz
+GOVERSION=1.4.2
+GOBINARY=go${GOVERSION}.linux-amd64.tar.gz
+echo "Installing go ${GOVERSION}..."
 wget -q https://storage.googleapis.com/golang/$GOBINARY
 tar -C /usr/local/ -xzf $GOBINARY
 ln -s /usr/local/go/bin/* /usr/bin/
 rm $GOBINARY
 echo "Complete."
 
-echo "Installing etcd 2.0.0..."
-ETCDBINARY=etcd-v2.0.0-linux-amd64.tar.gz
-wget -q https://github.com/coreos/etcd/releases/download/v2.0.0/$ETCDBINARY
-tar -C /usr/local/ -xzf $ETCDBINARY
-mv /usr/local/etcd-v2.0.0-linux-amd64 /usr/local/etcd
+ETCDVERSION=v2.0.11
+echo "Installing etcd ${ETCDVERSION}..."
+ETCDNAME=etcd-${ETCDVERSION}-linux-amd64
+ETCDBINARY=${ETCDNAME}.tar.gz
+wget -q https://github.com/coreos/etcd/releases/download/${ETCDVERSION}/${ETCDBINARY}
+tar -C /usr/local/ -xzf ${ETCDBINARY}
+mv /usr/local/${ETCDNAME} /usr/local/etcd
 ln -s /usr/local/etcd/etcd /usr/bin/etcd
 ln -s /usr/local/etcd/etcd-migrate /usr/bin/etcd-migrate
 ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
@@ -44,14 +50,14 @@ cat >/etc/profile.d/k8s.sh << 'EOL'
 export GOPATH=~/gopath
 export PATH=$PATH:~/gopath/bin
 # So docker works without sudo.
-export DOCKER_HOST=127.0.0.1:2375
+export DOCKER_HOST=tcp://127.0.0.1:2375
 # So you can start using cluster/kubecfg.sh right away.
 export KUBERNETES_PROVIDER=local
-# Run apiserver on 10.245.1.2 (instead of 127.0.0.1) so you can access
+# Run apiserver on 10.1.2.3 (instead of 127.0.0.1) so you can access
 # apiserver from your OS X host machine.
-export API_HOST=10.245.1.2
+export API_HOST=10.1.2.3
 # So you can access apiserver from kubectl in the VM.
-export KUBERNETES_MASTER=10.245.1.2:8080
+export KUBERNETES_MASTER=${API_HOST}:8080
 
 # For convenience.
 alias k="cd ~/gopath/src/github.com/GoogleCloudPlatform/kubernetes"
@@ -64,6 +70,9 @@ echo "127.0.0.1 localhost" >> /etc/hosts
 
 # kubelet complains if this directory doesn't exist.
 mkdir /var/lib/kubelet
+
+# kubernetes asks for this while building.
+CGO_ENABLED=0 go install -a -installsuffix cgo std
 
 # The NFS mount is initially owned by root - it should be owned by vagrant.
 chown vagrant.vagrant /home/vagrant/gopath
