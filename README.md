@@ -11,7 +11,7 @@ Kubernetes comes with a great script that lets you run an entire cluster locally
 
 # Getting started
 
-You must have the following requirements:
+You must have the following installed:
 
 * Virtualbox (https://www.virtualbox.org/)
 * Vagrant (https://www.vagrantup.com/)
