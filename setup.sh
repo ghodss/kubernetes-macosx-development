@@ -10,7 +10,7 @@ echo "Setting up VM..."
 echo "Installing system tools and docker..."
 # Packages useful for testing/interacting with containers and
 # source control tools are so go get works properly.
-yum -y install yum-fastestmirror git mercurial subversion docker-io curl nc
+yum -y install yum-fastestmirror git mercurial subversion docker-io curl nc gcc
 # Set docker daemon comand line options. Keep in mind that at this point this
 # overrides any existing options supplied by the RPM. This is overridden to
 # make sure docker is listening on all network interfaces.

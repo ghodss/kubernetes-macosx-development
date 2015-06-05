@@ -17,7 +17,7 @@ You must have the following installed:
 * Vagrant (https://www.vagrantup.com/)
 * Go and a proper GOPATH on your Mac (see https://golang.org/doc/code.html for more information)
 
-Next, install Kubernetes to your GOPATH by running `go get github.com/GoogleCloudPlatform/kubernetes`. If you want to write and contribute code, fork Kubernetes with your user on GitHub, and add your repo as a remote to your local checkout by running:
+Next, install Kubernetes to your GOPATH by running `go get github.com/GoogleCloudPlatform/kubernetes/...`. If you want to write and contribute code, fork Kubernetes with your user on GitHub, and add your repo as a remote to your local checkout by running:
 
 ```
 $ export GITHUB_USERNAME=<your github username>
@@ -35,7 +35,7 @@ If you want to tweak the Vagrant config, copy `config.sample.rb` to `config.rb` 
 
 # Warnings
 
-Running `vagrant up` MAY modify your Mac's GOPATH: `go get` [github.com/tools/godep](https://github.com/tools/godep) will be run in your GOPATH.
+Running `vagrant up` MAY modify your Mac's GOPATH: `go get github.com/tools/godep` will be run in your GOPATH.
 
 Sometimes the `$GOPATH/src` NFS mount gets wedged and you get strange errors like `Boffset: unknown state 0`, `Bseek: unknown state 0`, or that the mount isn't working. If this happens just run `vagrant reload` which will shut down and restart the VM and should fix the mount errors.
 
