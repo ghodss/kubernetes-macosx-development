@@ -41,4 +41,4 @@ Sometimes the `$GOPATH/src` NFS mount gets wedged and you get strange errors lik
 
 If you ever have trouble compiling, try running `make clean` in the kubernetes source directory. It can solve many issues.
 
-This configuration has only been explicitly tested on Mac OS X 10.9. It should work on other versions but no guarantees.
+This configuration has only been explicitly tested on Mac OS X 10.9 and 10.10. It should work on other versions but no guarantees.
