@@ -3,6 +3,7 @@
 # Everything in this file is run as root on the VM.
 
 set -e
+set -x
 
 echo "Setting up VM..."
 
@@ -22,7 +23,7 @@ systemctl enable docker
 echo "Complete."
 
 
-GOVERSION=1.4.2
+GOVERSION=1.6.2
 GOBINARY=go${GOVERSION}.linux-amd64.tar.gz
 echo "Installing go ${GOVERSION}..."
 wget -q https://storage.googleapis.com/golang/$GOBINARY
@@ -31,7 +32,8 @@ ln -s /usr/local/go/bin/* /usr/bin/
 rm $GOBINARY
 echo "Complete."
 
-ETCDVERSION=v2.0.11
+
+ETCDVERSION=v2.2.2
 echo "Installing etcd ${ETCDVERSION}..."
 ETCDNAME=etcd-${ETCDVERSION}-linux-amd64
 ETCDBINARY=${ETCDNAME}.tar.gz
@@ -44,8 +46,17 @@ ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
 rm $ETCDBINARY
 echo "Complete."
 
-echo "Creating /etc/profile.d/k8s.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
-cat >/etc/profile.d/k8s.sh << 'EOL'
+
+echo "Creating a GOPATH in /home/vagrant/gopath local to the VM..."
+# Create a gopath and symlink in the src directory. (Since we don't want to
+# share bin/ and pkg/ since they are platform dependent.)
+mkdir -p /home/vagrant/gopath/bin /home/vagrant/gopath/pkg
+ln -s $GOPATH/src /home/vagrant/gopath/src
+echo "Complete."
+
+
+echo "Creating /etc/profile.d/kubernetes.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
+cat >/etc/profile.d/kubernetes.sh << 'EOL'
 # Golang setup.
 export GOPATH=~/gopath
 export PATH=$PATH:~/gopath/bin
@@ -60,7 +71,7 @@ export API_HOST=10.1.2.3
 export KUBERNETES_MASTER=${API_HOST}:8080
 
 # For convenience.
-alias k="cd ~/gopath/src/github.com/GoogleCloudPlatform/kubernetes"
+alias k="cd $GOPATH/src/k8s.io/kubernetes"
 alias killcluster="ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print \$2}' | xargs kill"
 alias kstart="k && killcluster; hack/local-up-cluster.sh"
 EOL
@@ -75,7 +86,7 @@ mkdir /var/lib/kubelet
 CGO_ENABLED=0 go install -a -installsuffix cgo std
 
 # The NFS mount is initially owned by root - it should be owned by vagrant.
-chown vagrant.vagrant /home/vagrant/gopath
+chown vagrant.vagrant /Users
 
 echo "Complete."
 
@@ -83,7 +94,7 @@ echo "Complete."
 echo "Installing godep and etcd..."
 # Disable requiring TTY for the sudo commands below.
 sed -i 's/requiretty/\!requiretty/g' /etc/sudoers
-# TODO Should we source k8s.sh instead?
+# TODO Should we source kubernetes.sh instead?
 export GOPATH=/home/vagrant/gopath
 # Go will compile on both Mac OS X and Linux, but it will create different
 # compilation artifacts on the two platforms. By mounting only GOPATH's src

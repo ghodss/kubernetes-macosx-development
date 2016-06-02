@@ -11,6 +11,7 @@ require 'fileutils'
 # Defaults for config options defined in CONFIG
 $gopath = ""
 $expose_docker_tcp = true
+$mount_users_dir = true
 $vb_gui = false
 $vb_memory = 1024
 $vb_cpus = 1
@@ -26,7 +27,7 @@ end
 
 # If $gopath is still empty, abort.
 if $gopath.empty?
-  abort("GOPATH must be set (or create a config.rb to specify it manually).\n")
+  abort("GOPATH env var must be set (or create a config.rb to specify it manually).\n")
 end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
@@ -43,9 +44,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
       config.vm.network "forwarded_port", guest: 2375, host: 2375, auto_correct: true
     end
 
-    unless $gopath.empty?
-      $gopath_src_dir = File.join($gopath, "/src")
-      config.vm.synced_folder $gopath_src_dir, "/home/vagrant/gopath/src", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
+    if $mount_users_dir
+      config.vm.synced_folder "/Users/sam", "/Users/sam", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
     end
 
     config.vm.provider :virtualbox do |vb|
@@ -54,6 +54,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
       vb.cpus = $vb_cpus
     end
 
-    config.vm.provision "shell", inline: "/vagrant/setup.sh"
+    config.vm.provision "shell", inline: "GOPATH=#{$gopath} /vagrant/setup.sh"
   end
 end
