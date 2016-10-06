@@ -1,4 +1,4 @@
-#!/bin/bash
+/!/bin/bash
 
 # Everything in this file is run as root on the VM.
 
@@ -8,14 +8,33 @@ set -x
 echo "Setting up VM..."
 
 
-echo "Installing system tools and docker..."
+echo "Installing system tools..."
+yum -y install epel-release
 # Packages useful for testing/interacting with containers and
 # source control tools are so go get works properly.
-yum -y install yum-fastestmirror git mercurial subversion docker-io curl nc gcc
+yum -y install yum-fastestmirror git mercurial subversion curl nc gcc etcd
+
+tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+
+yum -y install docker-engine-1.10.3
+
 # Set docker daemon comand line options. Keep in mind that at this point this
 # overrides any existing options supplied by the RPM. This is overridden to
 # make sure docker is listening on all network interfaces.
-echo "OPTIONS=--selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375" > /etc/sysconfig/docker
+echo "" > /etc/sysconfig/docker
+mkdir /etc/systemd/system/docker.service.d
+tee /etc/systemd/system/docker.service.d/docker.conf <<-'EOF'
+[Service]
+ExecStart=
+ExecStart=/usr/bin/docker daemon --selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
+EOF
 # Start docker.
 systemctl start docker
 # Start docker on startup.
@@ -28,23 +47,23 @@ GOBINARY=go${GOVERSION}.linux-amd64.tar.gz
 echo "Installing go ${GOVERSION}..."
 wget -q https://storage.googleapis.com/golang/$GOBINARY
 tar -C /usr/local/ -xzf $GOBINARY
-ln -s /usr/local/go/bin/* /usr/bin/
-rm $GOBINARY
+ln -sf /usr/local/go/bin/* /usr/bin/
+rm -f $GOBINARY
 echo "Complete."
 
 
-ETCDVERSION=v2.2.2
-echo "Installing etcd ${ETCDVERSION}..."
-ETCDNAME=etcd-${ETCDVERSION}-linux-amd64
-ETCDBINARY=${ETCDNAME}.tar.gz
-wget -q https://github.com/coreos/etcd/releases/download/${ETCDVERSION}/${ETCDBINARY}
-tar -C /usr/local/ -xzf ${ETCDBINARY}
-mv /usr/local/${ETCDNAME} /usr/local/etcd
-ln -s /usr/local/etcd/etcd /usr/bin/etcd
-ln -s /usr/local/etcd/etcd-migrate /usr/bin/etcd-migrate
-ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
-rm $ETCDBINARY
-echo "Complete."
+#ETCDVERSION=v2.2.2
+#echo "Installing etcd ${ETCDVERSION}..."
+#ETCDNAME=etcd-${ETCDVERSION}-linux-amd64
+#ETCDBINARY=${ETCDNAME}.tar.gz
+#wget -q https://github.com/coreos/etcd/releases/download/${ETCDVERSION}/${ETCDBINARY}
+#tar -C /usr/local/ -xzf ${ETCDBINARY}
+#mv /usr/local/${ETCDNAME} /usr/local/etcd
+#ln -s /usr/local/etcd/etcd /usr/bin/etcd
+#ln -s /usr/local/etcd/etcd-migrate /usr/bin/etcd-migrate
+#ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
+#rm $ETCDBINARY
+#echo "Complete."
 
 
 echo "Creating a GOPATH in /home/vagrant/gopath local to the VM..."
@@ -80,7 +99,7 @@ EOL
 echo "127.0.0.1 localhost" >> /etc/hosts
 
 # kubelet complains if this directory doesn't exist.
-mkdir /var/lib/kubelet
+#mkdir /var/lib/kubelet
 
 # kubernetes asks for this while building.
 CGO_ENABLED=0 go install -a -installsuffix cgo std
@@ -91,7 +110,7 @@ chown vagrant.vagrant /Users
 echo "Complete."
 
 
-echo "Installing godep and etcd..."
+echo "Installing godep..."
 # Disable requiring TTY for the sudo commands below.
 sed -i 's/requiretty/\!requiretty/g' /etc/sudoers
 # TODO Should we source kubernetes.sh instead?
