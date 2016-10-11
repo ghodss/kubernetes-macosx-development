@@ -1,6 +1,30 @@
-/!/bin/bash
+#/!/bin/bash
 
 # Everything in this file is run as root on the VM.
+
+
+# Set docker daemon comand line options. We modify systemd configuration
+# for docker to start with our desired options.
+# Keep in mind that at this point this
+# overrides any existing options supplied by the RPM. This is overridden to
+# make sure docker is listening on all network interfaces.
+function setDockerDaemonOptions() {
+   echo "" > /etc/sysconfig/docker
+   mkdir /etc/systemd/system/docker.service.d
+   tee /etc/systemd/system/docker.service.d/docker.conf <<-'EOF'
+[Service]
+ExecStart=
+ExecStart=/usr/bin/docker daemon --selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
+EOF
+}
+
+# startDocker starts the docker service using systemctl
+function startDocker() {
+   systemctl daemon-reload
+   systemctl start docker
+   systemctl enable docker
+   echo "Docker daemon started."
+}
 
 set -e
 set -x
@@ -12,7 +36,7 @@ echo "Installing system tools..."
 yum -y install epel-release
 # Packages useful for testing/interacting with containers and
 # source control tools are so go get works properly.
-yum -y install yum-fastestmirror git mercurial subversion curl nc gcc etcd
+yum -y install yum-fastestmirror git mercurial subversion curl nc gcc
 
 tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
@@ -35,11 +59,12 @@ tee /etc/systemd/system/docker.service.d/docker.conf <<-'EOF'
 ExecStart=
 ExecStart=/usr/bin/docker daemon --selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
 EOF
-# Start docker.
-systemctl start docker
-# Start docker on startup.
-systemctl enable docker
-echo "Complete."
+
+# # Start docker.
+# systemctl start docker
+# # Start docker on startup.
+# systemctl enable docker
+# echo "Complete."
 
 
 GOVERSION=1.6.2
@@ -71,6 +96,7 @@ echo "Creating a GOPATH in /home/vagrant/gopath local to the VM..."
 # share bin/ and pkg/ since they are platform dependent.)
 mkdir -p /home/vagrant/gopath/bin /home/vagrant/gopath/pkg
 ln -s $GOPATH/src /home/vagrant/gopath/src
+chown -R vagrant:vagrant /home/vagrant/gopath
 echo "Complete."
 
 
@@ -99,7 +125,7 @@ EOL
 echo "127.0.0.1 localhost" >> /etc/hosts
 
 # kubelet complains if this directory doesn't exist.
-#mkdir /var/lib/kubelet
+mkdir /var/lib/kubelet
 
 # kubernetes asks for this while building.
 CGO_ENABLED=0 go install -a -installsuffix cgo std
@@ -123,4 +149,5 @@ export GOPATH=/home/vagrant/gopath
 sudo -u vagrant -E go get github.com/tools/godep && sudo -u vagrant -E go install github.com/tools/godep
 echo "Complete."
 
+startDocker
 echo "Setup complete."
