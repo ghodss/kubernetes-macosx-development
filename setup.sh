@@ -7,6 +7,13 @@
 
 
 
+function installSystemTools() {
+   echo "Installing system tools..."
+   yum -y install epel-release
+   # Packages useful for testing/interacting with containers and
+   # source control tools are so go get works properly.
+   yum -y install yum-fastestmirror git mercurial subversion curl nc gcc
+}
 
 # Add a repository to yum so that we can download
 # supported version of docker.
@@ -59,13 +66,7 @@ set -x
 
 echo "Setting up VM..."
 
-
-echo "Installing system tools..."
-yum -y install epel-release
-# Packages useful for testing/interacting with containers and
-# source control tools are so go get works properly.
-yum -y install yum-fastestmirror git mercurial subversion curl nc gcc
-
+installSystemTools
 
 installDocker
 startDocker
