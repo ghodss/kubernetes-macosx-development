@@ -3,8 +3,8 @@
 # A provisioning script for the created Vagrant vm.
 # This script is referred from the Vafrant file and it is executed during the
 # provisioning phase of starting a new vm.
+# Note: For this script to work there should be only one path in GOPATH env.
 # Everything in this file is run as root on the VM.
-
 
 
 function installSystemTools() {
@@ -12,7 +12,8 @@ function installSystemTools() {
    yum -y install epel-release
    # Packages useful for testing/interacting with containers and
    # source control tools are so go get works properly.
-   yum -y install yum-fastestmirror git mercurial subversion curl nc gcc
+   # net-tools: for ifconfig
+   yum -y install yum-fastestmirror git mercurial subversion curl nc gcc net-tools
 }
 
 # Add a repository to yum so that we can download
@@ -110,8 +111,46 @@ function installEtcd() {
       mv /usr/local/${etcdName} /usr/local/etcd
       ln -s /usr/local/etcd/etcd /usr/bin/etcd
       ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
-      echo "Installed etcd ${etdcVersion}."
+      echo "Installed etcd ${etcdVersion}."
    )
+}
+
+# Knowing the HOST_GOPATH, set up the gopath in the Guest.
+# Not that this setup assumes that the HOST_GOPATH will be in the
+# /Users directory tree in the host machine. The Vagrantfile sets up
+# the /Users directory as a synced_folder. So the HOST_GOPATH that is under
+# /Users will be visible in the Vagrant vm.
+function setupGopath() {
+   local hostGopath=$1
+   local guestGopath=$2
+   echo "Creating a GOPATH in ${guestGopath} local to the VM..."
+   # Create a gopath and symlink in the src directory. (Since we don't want to
+   # share bin/ and pkg/ since they are platform dependent.)
+   mkdir -p ${guestGopath}/bin ${guestGopath}/pkg
+   ln -s ${hostGopath}/src ${guestGopath}/src
+   chown -R vagrant:vagrant ${guestGopath}
+   echo "Completed GOPATH setup"
+}
+
+
+# There are several go install and go get's to be executed.
+# Kubernetes and go development may require these.
+function installGoPackages() {
+
+   echo "Installing go packages"
+
+   # kubernetes asks for this while building.
+   # FixMe: Should we execute the following command also as vagrant or not ?
+   CGO_ENABLED=0 go install -a -installsuffix cgo std
+
+   # Install godep
+   sudo -u vagrant -E go get github.com/tools/godep
+   sudo -u vagrant -E go install github.com/tools/godep
+
+   # Kubernetes compilation requires this
+   sudo -u vagrant -E go get -u github.com/jteeuwen/go-bindata/go-bindata
+
+   echo "Completed installGoPackages"
 }
 
 set -e
@@ -129,22 +168,16 @@ installGo "1.7.1"
 # Latest kubernetes requires a recent version of etcd
 installEtcd "v3.0.10"
 
-
+# HOST_GOPATH is passed by the VagrantFile looking at the Mac's environment.
 GUEST_GOPATH=/home/vagrant/gopath/
-echo "Creating a GOPATH in /home/vagrant/gopath local to the VM..."
-# Create a gopath and symlink in the src directory. (Since we don't want to
-# share bin/ and pkg/ since they are platform dependent.)
-mkdir -p ${GUEST_GOPATH}/bin ${GUEST_GOPATH}/pkg
-ln -s $GOPATH/src ${GUEST_GOPATH}/src
-chown -R vagrant:vagrant ${GUEST_GOPATH}
-echo "Complete."
+setupGopath "${HOST_GOPATH}" "${GUEST_GOPATH}"
+# The rest of the script installed some gobinaries. So the GOPATH needs to be known
+# from this point on .
+export GOPATH=${GUEST_GOPATH}
 
-# We also need to go get this :
-# go get -u github.com/jteeuwen/go-bindata/go-bindata
-# This comes up in all kubernetes compilations.
-# We could have this in gogetall
-#
-# For installing etcd should we use kube script or some other script ?
+installGoPackages
+
+
 
 echo "Creating /etc/profile.d/kubernetes.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
 cat >/etc/profile.d/kubernetes.sh << 'EOL'
@@ -157,9 +190,9 @@ export DOCKER_HOST=tcp://127.0.0.1:2375
 export KUBERNETES_PROVIDER=local
 # Run apiserver on 10.1.2.3 (instead of 127.0.0.1) so you can access
 # apiserver from your OS X host machine.
-export API_HOST=10.1.2.3
+# export API_HOST=10.1.2.3
 # So you can access apiserver from kubectl in the VM.
-export KUBERNETES_MASTER=${API_HOST}:8080
+# export KUBERNETES_MASTER=${API_HOST}:8080
 
 # For convenience.
 alias k="cd $GOPATH/src/k8s.io/kubernetes"
@@ -173,26 +206,9 @@ echo "127.0.0.1 localhost" >> /etc/hosts
 # kubelet complains if this directory doesn't exist.
 mkdir /var/lib/kubelet
 
-# kubernetes asks for this while building.
-CGO_ENABLED=0 go install -a -installsuffix cgo std
-
 # The NFS mount is initially owned by root - it should be owned by vagrant.
 chown vagrant.vagrant /Users
 
-echo "Complete."
 
-
-echo "Installing godep..."
-# Disable requiring TTY for the sudo commands below.
-sed -i 's/requiretty/\!requiretty/g' /etc/sudoers
-# TODO Should we source kubernetes.sh instead?
-export GOPATH=/home/vagrant/gopath
-# Go will compile on both Mac OS X and Linux, but it will create different
-# compilation artifacts on the two platforms. By mounting only GOPATH's src
-# directory into the VM, you can run `go install <package>` on the Fedora VM
-# and it will correctly compile <package> and install it into
-# /home/vagrant/gopath/bin.
-sudo -u vagrant -E go get github.com/tools/godep && sudo -u vagrant -E go install github.com/tools/godep
-echo "Complete."
 
 echo "Setup complete."
