@@ -20,6 +20,9 @@ EOF
 
 # startDocker starts the docker service using systemctl
 function startDocker() {
+
+   setDockerDaemonOptions
+
    systemctl daemon-reload
    systemctl start docker
    systemctl enable docker
@@ -49,22 +52,7 @@ EOF
 
 yum -y install docker-engine-1.10.3
 
-# Set docker daemon comand line options. Keep in mind that at this point this
-# overrides any existing options supplied by the RPM. This is overridden to
-# make sure docker is listening on all network interfaces.
-echo "" > /etc/sysconfig/docker
-mkdir /etc/systemd/system/docker.service.d
-tee /etc/systemd/system/docker.service.d/docker.conf <<-'EOF'
-[Service]
-ExecStart=
-ExecStart=/usr/bin/docker daemon --selinux-enabled -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
-EOF
-
-# # Start docker.
-# systemctl start docker
-# # Start docker on startup.
-# systemctl enable docker
-# echo "Complete."
+startDocker
 
 
 GOVERSION=1.6.2
@@ -149,5 +137,4 @@ export GOPATH=/home/vagrant/gopath
 sudo -u vagrant -E go get github.com/tools/godep && sudo -u vagrant -E go install github.com/tools/godep
 echo "Complete."
 
-startDocker
 echo "Setup complete."
