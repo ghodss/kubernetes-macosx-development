@@ -1,7 +1,32 @@
 #/!/bin/bash
 
+# A provisioning script for the created Vagrant vm.
+# This script is referred from the Vafrant file and it is executed during the
+# provisioning phase of starting a new vm.
 # Everything in this file is run as root on the VM.
 
+
+
+
+# Add a repository to yum so that we can download
+# supported version of docker.
+function addDockerYumRepo() {
+   tee /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+}
+
+# Set up yum and install the supported version of docker
+function installDocker() {
+   addDockerYumRepo
+
+   yum -y install docker-engine-1.10.3
+}
 
 # Set docker daemon comand line options. We modify systemd configuration
 # for docker to start with our desired options.
@@ -41,17 +66,8 @@ yum -y install epel-release
 # source control tools are so go get works properly.
 yum -y install yum-fastestmirror git mercurial subversion curl nc gcc
 
-tee /etc/yum.repos.d/docker.repo <<-'EOF'
-[dockerrepo]
-name=Docker Repository
-baseurl=https://yum.dockerproject.org/repo/main/centos/7/
-enabled=1
-gpgcheck=1
-gpgkey=https://yum.dockerproject.org/gpg
-EOF
 
-yum -y install docker-engine-1.10.3
-
+installDocker
 startDocker
 
 
