@@ -48,7 +48,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
     end
 
     if $mount_users_dir
-      config.vm.synced_folder $home, $home, id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
+      # config.vm.synced_folder $home, $home, id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
+      config.vm.synced_folder $home, $home, id: "core"
     end
 
     config.vm.provider :virtualbox do |vb|
