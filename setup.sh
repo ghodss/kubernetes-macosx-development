@@ -61,19 +61,57 @@ function startDocker() {
    echo "Docker daemon started."
 }
 
+# Downloads the file with wget if it does not exist in the current directory.
+# The user passes the wget argument path to this function as the first parameter
+function maybeDownloadFile() {
+   local wgetArg=$1
+   local fileName=$(basename "${wgetArg}")
+   if [ -f "${fileName}" ]; then
+      echo "File: ${fileName} already exists in $(pwd) skipping download"
+   else
+      echo "Downloading file: ${fileName}"
+      wget -q "${wgetArg}"
+   fi
+}
+
 # Install go at the given version. The desired version string is passed as the
 # first paramter of the function.
 # Example usage:
 # installGo "1.6.2"
 function installGo() {
-   local GOVERSION=$1
-   local GOBINARY=go${GOVERSION}.linux-amd64.tar.gz
-   echo "Installing go ${GOVERSION}..."
-   wget -q https://storage.googleapis.com/golang/$GOBINARY
-   tar -C /usr/local/ -xzf $GOBINARY
-   ln -sf /usr/local/go/bin/* /usr/bin/
-   rm -f $GOBINARY
-   echo "Complete."
+   # Creating a subshell so that changes in this function do not "escape" the
+   # function. For example change directory.
+   (
+      cd /vagrant
+
+      local goVersion=$1
+      local goBinary=go${goVersion}.linux-amd64.tar.gz
+      echo "Installing go ${goVersion}..."
+      maybeDownloadFile  https://storage.googleapis.com/golang/$goBinary
+      tar -C /usr/local/ -xzf $goBinary
+      ln -sf /usr/local/go/bin/* /usr/bin/
+      echo "Installed go ${goVersion}."
+   )
+}
+
+# Kubernetes development requires at least etcd version
+function installEtcd() {
+   # Creating a subshell so that changes in this function do not "escape" the
+   # function. For example change directory.
+   (
+      cd /vagrant
+
+      etcdVersion=$1
+      echo "Installing etcd ${etcdVersion}..."
+      etcdName=etcd-${etcdVersion}-linux-amd64
+      etcdBinary=${etcdName}.tar.gz
+      maybeDownloadFile https://github.com/coreos/etcd/releases/download/${etcdVersion}/${etcdBinary}
+      tar -C /usr/local/ -xzf ${etcdBinary}
+      mv /usr/local/${etcdName} /usr/local/etcd
+      ln -s /usr/local/etcd/etcd /usr/bin/etcd
+      ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
+      echo "Installed etcd ${etdcVersion}."
+   )
 }
 
 set -e
@@ -86,31 +124,27 @@ installSystemTools
 installDocker
 startDocker
 
-installGo "1.6.2"
+# Get the go and etcd releases.
+installGo "1.7.1"
+# Latest kubernetes requires a recent version of etcd
+installEtcd "v3.0.10"
 
 
-#ETCDVERSION=v2.2.2
-#echo "Installing etcd ${ETCDVERSION}..."
-#ETCDNAME=etcd-${ETCDVERSION}-linux-amd64
-#ETCDBINARY=${ETCDNAME}.tar.gz
-#wget -q https://github.com/coreos/etcd/releases/download/${ETCDVERSION}/${ETCDBINARY}
-#tar -C /usr/local/ -xzf ${ETCDBINARY}
-#mv /usr/local/${ETCDNAME} /usr/local/etcd
-#ln -s /usr/local/etcd/etcd /usr/bin/etcd
-#ln -s /usr/local/etcd/etcd-migrate /usr/bin/etcd-migrate
-#ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
-#rm $ETCDBINARY
-#echo "Complete."
-
-
+GUEST_GOPATH=/home/vagrant/gopath/
 echo "Creating a GOPATH in /home/vagrant/gopath local to the VM..."
 # Create a gopath and symlink in the src directory. (Since we don't want to
 # share bin/ and pkg/ since they are platform dependent.)
-mkdir -p /home/vagrant/gopath/bin /home/vagrant/gopath/pkg
-ln -s $GOPATH/src /home/vagrant/gopath/src
-chown -R vagrant:vagrant /home/vagrant/gopath
+mkdir -p ${GUEST_GOPATH}/bin ${GUEST_GOPATH}/pkg
+ln -s $GOPATH/src ${GUEST_GOPATH}/src
+chown -R vagrant:vagrant ${GUEST_GOPATH}
 echo "Complete."
 
+# We also need to go get this :
+# go get -u github.com/jteeuwen/go-bindata/go-bindata
+# This comes up in all kubernetes compilations.
+# We could have this in gogetall
+#
+# For installing etcd should we use kube script or some other script ?
 
 echo "Creating /etc/profile.d/kubernetes.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
 cat >/etc/profile.d/kubernetes.sh << 'EOL'
