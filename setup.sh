@@ -61,6 +61,21 @@ function startDocker() {
    echo "Docker daemon started."
 }
 
+# Install go at the given version. The desired version string is passed as the
+# first paramter of the function.
+# Example usage:
+# installGo "1.6.2"
+function installGo() {
+   local GOVERSION=$1
+   local GOBINARY=go${GOVERSION}.linux-amd64.tar.gz
+   echo "Installing go ${GOVERSION}..."
+   wget -q https://storage.googleapis.com/golang/$GOBINARY
+   tar -C /usr/local/ -xzf $GOBINARY
+   ln -sf /usr/local/go/bin/* /usr/bin/
+   rm -f $GOBINARY
+   echo "Complete."
+}
+
 set -e
 set -x
 
@@ -71,15 +86,7 @@ installSystemTools
 installDocker
 startDocker
 
-
-GOVERSION=1.6.2
-GOBINARY=go${GOVERSION}.linux-amd64.tar.gz
-echo "Installing go ${GOVERSION}..."
-wget -q https://storage.googleapis.com/golang/$GOBINARY
-tar -C /usr/local/ -xzf $GOBINARY
-ln -sf /usr/local/go/bin/* /usr/bin/
-rm -f $GOBINARY
-echo "Complete."
+installGo "1.6.2"
 
 
 #ETCDVERSION=v2.2.2
