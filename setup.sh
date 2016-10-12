@@ -43,7 +43,7 @@ function installDocker() {
 # make sure docker is listening on all network interfaces.
 function setDockerDaemonOptions() {
    echo "" > /etc/sysconfig/docker
-   mkdir /etc/systemd/system/docker.service.d
+   mkdir -p /etc/systemd/system/docker.service.d
    tee /etc/systemd/system/docker.service.d/docker.conf <<-'EOF'
 [Service]
 ExecStart=
@@ -108,9 +108,10 @@ function installEtcd() {
       etcdBinary=${etcdName}.tar.gz
       maybeDownloadFile https://github.com/coreos/etcd/releases/download/${etcdVersion}/${etcdBinary}
       tar -C /usr/local/ -xzf ${etcdBinary}
-      mv /usr/local/${etcdName} /usr/local/etcd
-      ln -s /usr/local/etcd/etcd /usr/bin/etcd
-      ln -s /usr/local/etcd/etcdctl /usr/bin/etcdctl
+      rm -rf  /usr/local/etcd
+      mv -n /usr/local/${etcdName} /usr/local/etcd
+      ln -sf /usr/local/etcd/etcd /usr/bin/etcd
+      ln -sf /usr/local/etcd/etcdctl /usr/bin/etcdctl
       echo "Installed etcd ${etcdVersion}."
    )
 }
@@ -127,7 +128,7 @@ function setupGopath() {
    # Create a gopath and symlink in the src directory. (Since we don't want to
    # share bin/ and pkg/ since they are platform dependent.)
    mkdir -p ${guestGopath}/bin ${guestGopath}/pkg
-   ln -s ${hostGopath}/src ${guestGopath}/src
+   ln -sf ${hostGopath}/src ${guestGopath}/src
    chown -R vagrant:vagrant ${guestGopath}
    echo "Completed GOPATH setup"
 }
@@ -153,6 +154,37 @@ function installGoPackages() {
    echo "Completed installGoPackages"
 }
 
+
+# Populate a /etc/profile.d file so that several setup tasks are done
+# automatically at every login
+function writeProfileFile() {
+   local guestGopath=$1
+echo "Creating /etc/profile.d/kubernetes.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
+cat >/etc/profile.d/kubernetes.sh <<EOL
+# Golang setup.
+export GOPATH=${guestGopath}
+export PATH=\$PATH:${guestGopath}/bin
+# So docker works without sudo.
+export DOCKER_HOST=tcp://127.0.0.1:2375
+# So you can start using cluster/kubecfg.sh right away.
+export KUBERNETES_PROVIDER=local
+# Run apiserver on 10.1.2.3 (instead of 127.0.0.1) so you can access
+# apiserver from your OS X host machine.
+# FixMe: Somehow I would not make the network interface setup work correctly
+# So the following two settings would not work as is.
+# export API_HOST=10.1.2.3
+# So you can access apiserver from kubectl in the VM.
+# export KUBERNETES_MASTER=\${API_HOST}:8080
+
+# For convenience.
+alias k="cd \$GOPATH/src/k8s.io/kubernetes"
+alias killcluster="ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print \\\$2}' | xargs kill"
+alias kstart="k && killcluster; hack/local-up-cluster.sh"
+EOL
+}
+
+
+
 set -e
 set -x
 
@@ -169,46 +201,24 @@ installGo "1.7.1"
 installEtcd "v3.0.10"
 
 # HOST_GOPATH is passed by the VagrantFile looking at the Mac's environment.
-GUEST_GOPATH=/home/vagrant/gopath/
+GUEST_GOPATH=/home/vagrant/gopath
 setupGopath "${HOST_GOPATH}" "${GUEST_GOPATH}"
 # The rest of the script installed some gobinaries. So the GOPATH needs to be known
 # from this point on .
 export GOPATH=${GUEST_GOPATH}
 
 installGoPackages
+writeProfileFile  "${GUEST_GOPATH}"
 
-
-
-echo "Creating /etc/profile.d/kubernetes.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
-cat >/etc/profile.d/kubernetes.sh << 'EOL'
-# Golang setup.
-export GOPATH=~/gopath
-export PATH=$PATH:~/gopath/bin
-# So docker works without sudo.
-export DOCKER_HOST=tcp://127.0.0.1:2375
-# So you can start using cluster/kubecfg.sh right away.
-export KUBERNETES_PROVIDER=local
-# Run apiserver on 10.1.2.3 (instead of 127.0.0.1) so you can access
-# apiserver from your OS X host machine.
-# export API_HOST=10.1.2.3
-# So you can access apiserver from kubectl in the VM.
-# export KUBERNETES_MASTER=${API_HOST}:8080
-
-# For convenience.
-alias k="cd $GOPATH/src/k8s.io/kubernetes"
-alias killcluster="ps axu|grep -e go/bin -e etcd |grep -v grep | awk '{print \$2}' | xargs kill"
-alias kstart="k && killcluster; hack/local-up-cluster.sh"
-EOL
 
 # For some reason /etc/hosts does not alias localhost to 127.0.0.1.
 echo "127.0.0.1 localhost" >> /etc/hosts
 
 # kubelet complains if this directory doesn't exist.
-mkdir /var/lib/kubelet
+mkdir -p /var/lib/kubelet
 
 # The NFS mount is initially owned by root - it should be owned by vagrant.
 chown vagrant.vagrant /Users
-
 
 
 echo "Setup complete."
