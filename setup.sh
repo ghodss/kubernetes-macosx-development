@@ -1,4 +1,4 @@
-#/!/bin/bash
+#!/bin/bash
 
 # A provisioning script for the created Vagrant vm.
 # This script is referred from the Vagrant file and it is executed during the
@@ -7,7 +7,7 @@
 # Everything in this file is run as root on the VM.
 
 
-function installSystemTools() {
+function install_system_tools() {
    echo "Installing system tools..."
    yum -y install epel-release
    # Packages useful for testing/interacting with containers and
@@ -18,7 +18,7 @@ function installSystemTools() {
 
 # Add a repository to yum so that we can download
 # supported version of docker.
-function addDockerYumRepo() {
+function add_docker_yum_repo() {
    tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -30,8 +30,8 @@ EOF
 }
 
 # Set up yum and install the supported version of docker
-function installDocker() {
-   addDockerYumRepo
+function install_docker() {
+   add_docker_yum_repo
 
    yum -y install docker-engine-1.10.3
 }
@@ -51,8 +51,8 @@ ExecStart=/usr/bin/docker daemon --selinux-enabled -H unix:///var/run/docker.soc
 EOF
 }
 
-# startDocker starts the docker service using systemctl
-function startDocker() {
+# configure_and_start_docker starts the docker service using systemctl
+function configure_and_start_docker() {
 
    setDockerDaemonOptions
 
@@ -64,7 +64,7 @@ function startDocker() {
 
 # Downloads the file with wget if it does not exist in the current directory.
 # The user passes the wget argument path to this function as the first parameter
-function maybeDownloadFile() {
+function maybe_download_file() {
    local wgetArg=$1
    local fileName=$(basename "${wgetArg}")
    if [ -f "${fileName}" ]; then
@@ -76,10 +76,10 @@ function maybeDownloadFile() {
 }
 
 # Install go at the given version. The desired version string is passed as the
-# first paramter of the function.
+# first parameter of the function.
 # Example usage:
-# installGo "1.6.2"
-function installGo() {
+# install_go "1.6.2"
+function install_go() {
    # Creating a subshell so that changes in this function do not "escape" the
    # function. For example change directory.
    (
@@ -88,7 +88,7 @@ function installGo() {
       local goVersion=$1
       local goBinary=go${goVersion}.linux-amd64.tar.gz
       echo "Installing go ${goVersion}..."
-      maybeDownloadFile  https://storage.googleapis.com/golang/$goBinary
+      maybe_download_file  https://storage.googleapis.com/golang/$goBinary
       tar -C /usr/local/ -xzf $goBinary
       ln -sf /usr/local/go/bin/* /usr/bin/
       echo "Installed go ${goVersion}."
@@ -96,7 +96,7 @@ function installGo() {
 }
 
 # Kubernetes development requires at least etcd version
-function installEtcd() {
+function install_etcd() {
    # Creating a subshell so that changes in this function do not "escape" the
    # function. For example change directory.
    (
@@ -106,7 +106,7 @@ function installEtcd() {
       echo "Installing etcd ${etcdVersion}..."
       etcdName=etcd-${etcdVersion}-linux-amd64
       etcdBinary=${etcdName}.tar.gz
-      maybeDownloadFile https://github.com/coreos/etcd/releases/download/${etcdVersion}/${etcdBinary}
+      maybe_download_file https://github.com/coreos/etcd/releases/download/${etcdVersion}/${etcdBinary}
       tar -C /usr/local/ -xzf ${etcdBinary}
       rm -rf  /usr/local/etcd
       mv -n /usr/local/${etcdName} /usr/local/etcd
@@ -136,7 +136,7 @@ function setupGopath() {
 
 # There are several go install and go get's to be executed.
 # Kubernetes and go development may require these.
-function installGoPackages() {
+function install_go_packages() {
 
    echo "Installing go packages"
 
@@ -151,13 +151,13 @@ function installGoPackages() {
    # Kubernetes compilation requires this
    sudo -u vagrant -E go get -u github.com/jteeuwen/go-bindata/go-bindata
 
-   echo "Completed installGoPackages"
+   echo "Completed install_go_packages"
 }
 
 
 # Populate a /etc/profile.d file so that several setup tasks are done
 # automatically at every login
-function writeProfileFile() {
+function write_profile_file() {
    local guestGopath=$1
    local guestIp=$2
 echo "Creating /etc/profile.d/kubernetes.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
@@ -187,17 +187,27 @@ EOL
 set -e
 set -x
 
+
+if [ -z "${GUEST_IP}" ]; then
+   GUEST_IP=127.0.0.1
+fi
+if [ -z "${HOST_GOPATH}" ]; then
+   echo "HOST_GOPATH is not set. Please set HOST_GOPATH to the GOPATH in the host os and retry"
+   exit 1
+fi
+
+
 echo "Setting up VM..."
 
-installSystemTools
+install_system_tools
 
-installDocker
-startDocker
+install_docker
+configure_and_start_docker
 
 # Get the go and etcd releases.
-installGo "1.7.1"
+install_go "1.7.1"
 # Latest kubernetes requires a recent version of etcd
-installEtcd "v3.0.10"
+install_etcd "v3.0.10"
 
 # HOST_GOPATH is passed by the VagrantFile looking at the Mac's environment.
 GUEST_GOPATH=/home/vagrant/gopath
@@ -206,8 +216,8 @@ setupGopath "${HOST_GOPATH}" "${GUEST_GOPATH}"
 # from this point on .
 export GOPATH=${GUEST_GOPATH}
 
-installGoPackages
-writeProfileFile  "${GUEST_GOPATH}" "${GUEST_IP}"
+install_go_packages
+write_profile_file  "${GUEST_GOPATH}" "${GUEST_IP}"
 
 
 # For some reason /etc/hosts does not alias localhost to 127.0.0.1.
@@ -219,5 +229,6 @@ mkdir -p /var/lib/kubelet
 # The NFS mount is initially owned by root - it should be owned by vagrant.
 chown vagrant.vagrant /Users
 
-
 echo "Setup complete."
+
+
