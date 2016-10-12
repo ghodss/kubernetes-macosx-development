@@ -1,7 +1,7 @@
 #/!/bin/bash
 
 # A provisioning script for the created Vagrant vm.
-# This script is referred from the Vafrant file and it is executed during the
+# This script is referred from the Vagrant file and it is executed during the
 # provisioning phase of starting a new vm.
 # Note: For this script to work there should be only one path in GOPATH env.
 # Everything in this file is run as root on the VM.
