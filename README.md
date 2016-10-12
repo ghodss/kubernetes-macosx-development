@@ -4,7 +4,7 @@ Kubernetes comes with a great script that lets you run an entire cluster locally
 
 * Edit source files on your Mac's checkout of Kubernetes and use `go build` (for syntax checking) and `go test` (for unit tests) directly on your Mac.
 * Run `vagrant up` (in this directory) to automatically:
- * Launch a Fedora 22 VM on your Mac that has Go and Docker installed on the IP 10.1.2.3.
+ * Launch a Centos 7 VM on your Mac that has Go and Docker installed on the IP 10.1.2.3.
  * Mount your Mac's `/Users` directory into the VM at `/Users` to share your Mac's code with the VM.
  * Enable the ability to run a Kubernetes cluster using `hack/local-up-cluster.sh`.
  * Eliminate the need for docker-machine: Use Docker in the VM for building and releasing Kubernetes by forwarding Docker's port (2375) to localhost (this is done by default).
@@ -17,11 +17,11 @@ You must have the following installed:
 * Vagrant (https://www.vagrantup.com/)
 * Go and a proper GOPATH on your Mac (see https://golang.org/doc/code.html for more information)
 
-Next, install Kubernetes to your GOPATH by running `go get github.com/GoogleCloudPlatform/kubernetes/...`. If you want to write and contribute code, fork Kubernetes with your user on GitHub, and add your repo as a remote to your local checkout by running:
+Next, install Kubernetes to your GOPATH by running `go get k8s.io/kubernetes/...`. If you want to write and contribute code, fork Kubernetes with your user on GitHub, and add your repo as a remote to your local checkout by running:
 
 ```
 $ export GITHUB_USERNAME=<your github username>
-$ cd $GOPATH/src/github.com/GoogleCloudPlatform/kubernetes
+$ cd $GOPATH/src/k8s.io/kubernetes
 $ git remote add $GITHUB_USERNAME https://github.com/$GITHUB_USERNAME/kubernetes
 ```
 
