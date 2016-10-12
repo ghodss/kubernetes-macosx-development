@@ -40,7 +40,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
     config.vm.box = "bento/centos-7.2"
 
     ip = "10.1.2.3"
-    # config.vm.network "private_network", type: "dhcp"
     config.vm.network "private_network", ip: ip
 
     config.vm.boot_timeout = 3000
