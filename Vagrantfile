@@ -30,16 +30,21 @@ end
 if $gopath.empty?
   abort("GOPATH env var must be set (or create a config.rb to specify it manually).\n")
 end
+# TODO: We should also add here a check that the GOPATH variable has only
+# one path. In other words it does not contain any other path delimiters.
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
   c.vm.define vm_name = "k8s-env" do |config|
     config.vm.hostname = vm_name
 
     config.vm.box = "geerlingguy/centos7"
-    #config.vm.box_url = "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_centos-7.2_chef-provisionerless.box"
 
-    ip = "10.1.2.3"
-    config.vm.network :private_network, ip: ip
+    # ip = "10.0.2.15"
+    # config.vm.network "private_network", ip: "10.1.2.3"
+    # TODO: For some reason the port assignment does not work.
+    # Use dhcp at this time.
+    config.vm.network "private_network", type: "dhcp"
+
 
     config.vm.boot_timeout = 3000
 
@@ -48,8 +53,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
     end
 
     if $mount_users_dir
-      # config.vm.synced_folder $home, $home, id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
-      config.vm.synced_folder $home, $home, id: "core"
+      config.vm.synced_folder $home, $home, type: "nfs"
     end
 
     config.vm.provider :virtualbox do |vb|
@@ -58,6 +62,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
       vb.cpus = $vb_cpus
     end
 
-    config.vm.provision "shell", inline: "GOPATH=#{$gopath} /vagrant/setup.sh"
+    config.vm.provision "shell", inline: "HOST_GOPATH=#{$gopath} /vagrant/setup.sh"
   end
 end
