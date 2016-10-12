@@ -159,6 +159,7 @@ function installGoPackages() {
 # automatically at every login
 function writeProfileFile() {
    local guestGopath=$1
+   local guestIp=$2
 echo "Creating /etc/profile.d/kubernetes.sh to set GOPATH, KUBERNETES_PROVIDER and other config..."
 cat >/etc/profile.d/kubernetes.sh <<EOL
 # Golang setup.
@@ -168,13 +169,11 @@ export PATH=\$PATH:${guestGopath}/bin
 export DOCKER_HOST=tcp://127.0.0.1:2375
 # So you can start using cluster/kubecfg.sh right away.
 export KUBERNETES_PROVIDER=local
-# Run apiserver on 10.1.2.3 (instead of 127.0.0.1) so you can access
+# Run apiserver on guestIP (instead of 127.0.0.1) so you can access
 # apiserver from your OS X host machine.
-# FixMe: Somehow I would not make the network interface setup work correctly
-# So the following two settings would not work as is.
-# export API_HOST=10.1.2.3
+export API_HOST=${guestIp}
 # So you can access apiserver from kubectl in the VM.
-# export KUBERNETES_MASTER=\${API_HOST}:8080
+export KUBERNETES_MASTER=\${API_HOST}:8080
 
 # For convenience.
 alias k="cd \$GOPATH/src/k8s.io/kubernetes"
@@ -208,7 +207,7 @@ setupGopath "${HOST_GOPATH}" "${GUEST_GOPATH}"
 export GOPATH=${GUEST_GOPATH}
 
 installGoPackages
-writeProfileFile  "${GUEST_GOPATH}"
+writeProfileFile  "${GUEST_GOPATH}" "${GUEST_IP}"
 
 
 # For some reason /etc/hosts does not alias localhost to 127.0.0.1.
