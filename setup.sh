@@ -205,7 +205,7 @@ install_docker
 configure_and_start_docker
 
 # Get the go and etcd releases.
-install_go "1.7.1"
+install_go "1.6.3"
 # Latest kubernetes requires a recent version of etcd
 install_etcd "v3.0.10"
 
