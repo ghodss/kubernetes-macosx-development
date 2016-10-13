@@ -41,7 +41,7 @@ function install_docker() {
 # Keep in mind that at this point this
 # overrides any existing options supplied by the RPM. This is overridden to
 # make sure docker is listening on all network interfaces.
-function setDockerDaemonOptions() {
+function set_docker_daemon_options() {
    echo "" > /etc/sysconfig/docker
    mkdir -p /etc/systemd/system/docker.service.d
    tee /etc/systemd/system/docker.service.d/docker.conf <<-'EOF'
@@ -54,7 +54,7 @@ EOF
 # configure_and_start_docker starts the docker service using systemctl
 function configure_and_start_docker() {
 
-   setDockerDaemonOptions
+   set_docker_daemon_options
 
    systemctl daemon-reload
    systemctl start docker
@@ -64,7 +64,7 @@ function configure_and_start_docker() {
 
 # Downloads the file with wget if it does not exist in the current directory.
 # The user passes the wget argument path to this function as the first parameter
-function maybe_download_file() {
+function ensure_file_is_downloaded() {
    local wgetArg=$1
    local fileName=$(basename "${wgetArg}")
    if [ -f "${fileName}" ]; then
@@ -88,7 +88,7 @@ function install_go() {
       local goVersion=$1
       local goBinary=go${goVersion}.linux-amd64.tar.gz
       echo "Installing go ${goVersion}..."
-      maybe_download_file  https://storage.googleapis.com/golang/$goBinary
+      ensure_file_is_downloaded  https://storage.googleapis.com/golang/$goBinary
       tar -C /usr/local/ -xzf $goBinary
       ln -sf /usr/local/go/bin/* /usr/bin/
       echo "Installed go ${goVersion}."
@@ -106,7 +106,7 @@ function install_etcd() {
       echo "Installing etcd ${etcdVersion}..."
       etcdName=etcd-${etcdVersion}-linux-amd64
       etcdBinary=${etcdName}.tar.gz
-      maybe_download_file https://github.com/coreos/etcd/releases/download/${etcdVersion}/${etcdBinary}
+      ensure_file_is_downloaded https://github.com/coreos/etcd/releases/download/${etcdVersion}/${etcdBinary}
       tar -C /usr/local/ -xzf ${etcdBinary}
       rm -rf  /usr/local/etcd
       mv -n /usr/local/${etcdName} /usr/local/etcd
@@ -121,7 +121,7 @@ function install_etcd() {
 # /Users directory tree in the host machine. The Vagrantfile sets up
 # the /Users directory as a synced_folder. So the HOST_GOPATH that is under
 # /Users will be visible in the Vagrant vm.
-function setupGopath() {
+function setup_gopath() {
    local hostGopath=$1
    local guestGopath=$2
    echo "Creating a GOPATH in ${guestGopath} local to the VM..."
@@ -211,7 +211,7 @@ install_etcd "v3.0.10"
 
 # HOST_GOPATH is passed by the VagrantFile looking at the Mac's environment.
 GUEST_GOPATH=/home/vagrant/gopath
-setupGopath "${HOST_GOPATH}" "${GUEST_GOPATH}"
+setup_gopath "${HOST_GOPATH}" "${GUEST_GOPATH}"
 # The rest of the script installed some gobinaries. So the GOPATH needs to be known
 # from this point on .
 export GOPATH=${GUEST_GOPATH}
