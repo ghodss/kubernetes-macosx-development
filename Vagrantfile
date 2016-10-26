@@ -37,7 +37,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
   c.vm.define vm_name = "k8s-env" do |config|
     config.vm.hostname = vm_name
 
-    config.vm.box = "bento/centos-7.2"
+    config.vm.box = "centos/7"
 
     ip = "10.1.2.3"
     config.vm.network "private_network", ip: ip
