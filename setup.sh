@@ -13,7 +13,7 @@ function install_system_tools() {
    # Packages useful for testing/interacting with containers and
    # source control tools are so go get works properly.
    # net-tools: for ifconfig
-   yum -y install yum-fastestmirror git mercurial subversion curl nc gcc net-tools
+   yum -y install yum-fastestmirror git mercurial subversion curl nc gcc net-tools wget
 }
 
 # Add a repository to yum so that we can download
@@ -33,7 +33,7 @@ EOF
 function install_docker() {
    add_docker_yum_repo
 
-   yum -y install docker-engine-1.10.3
+   yum -y install docker-engine-1.10.3 docker-engine-selinux-1.10.3
 }
 
 # Set docker daemon comand line options. We modify systemd configuration
