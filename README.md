@@ -13,9 +13,14 @@ Kubernetes comes with a great script that lets you run an entire cluster locally
 
 You must have the following installed:
 
-* Virtualbox (https://www.virtualbox.org/)
-* Vagrant (https://www.vagrantup.com/)
-* Go and a proper GOPATH on your Mac (see https://golang.org/doc/code.html for more information)
+* Virtualbox >= 5.1.22
+ * Download and install from https://www.virtualbox.org/.
+* Vagrant >= 1.9.5
+ * Download and install from https://www.vagrantup.com/.
+* `vagrant-vbguest` Vagrant plugin.
+ * Install by running: `vagrant plugin install vagrant-vbguest`. We use the official CentOS 7 Vagrant box, which does not come with Virtualbox Guest Additions - installing this plugin ensures that the additions are installed on first `vagrant up`.
+* Go and a proper GOPATH on your Mac
+ * See https://golang.org/doc/code.html for more information.
 
 Next, install Kubernetes to your GOPATH by running `go get k8s.io/kubernetes/...`. If you want to write and contribute code, fork Kubernetes with your user on GitHub, and add your repo as a remote to your local checkout by running:
 
