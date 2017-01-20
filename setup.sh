@@ -13,7 +13,8 @@ function install_system_tools() {
    # Packages useful for testing/interacting with containers and
    # source control tools are so go get works properly.
    # net-tools: for ifconfig
-   yum -y install yum-fastestmirror git mercurial subversion curl nc gcc net-tools
+   yum -y install yum-fastestmirror git mercurial subversion curl nc gcc net-tools \
+      wget psmisc lsof vim
 }
 
 # Add a repository to yum so that we can download
@@ -151,6 +152,9 @@ function install_go_packages() {
    # Kubernetes compilation requires this
    sudo -u vagrant -E go get -u github.com/jteeuwen/go-bindata/go-bindata
 
+   # local-up-cluster wants cloudflare ssl toolkit
+   sudo -u vagrant -E go get -u github.com/cloudflare/cfssl/cmd/...
+
    echo "Completed install_go_packages"
 }
 
@@ -167,13 +171,24 @@ export GOPATH=${guestGopath}
 export PATH=\$PATH:${guestGopath}/bin
 # So docker works without sudo.
 export DOCKER_HOST=tcp://127.0.0.1:2375
+
 # So you can start using cluster/kubecfg.sh right away.
 export KUBERNETES_PROVIDER=local
+
 # Run apiserver on guestIP (instead of 127.0.0.1) so you can access
 # apiserver from your OS X host machine.
-export API_HOST=${guestIp}
+# TODO: The private network static IP/nfs mount combination does not work in vagrant.
+# Disable this API host overwrite it is not very useful without static ip's anyways.
+# export API_HOST=${guestIp}
+
 # So you can access apiserver from kubectl in the VM.
-export KUBERNETES_MASTER=\${API_HOST}:8080
+# TODO: No need to do this. local-up-cluster helps you set up your ~/.kube/config
+# file for successfull access.
+# export KUBERNETES_MASTER=\${API_HOST}:8080
+
+# For some reason basic authentication by default does not work from
+# local-up-cluster.
+export ALLOW_ANY_TOKEN=true
 
 # For convenience.
 alias k="cd \$GOPATH/src/k8s.io/kubernetes"
@@ -205,9 +220,9 @@ install_docker
 configure_and_start_docker
 
 # Get the go and etcd releases.
-install_go "1.6.3"
+install_go "1.7.4"
 # Latest kubernetes requires a recent version of etcd
-install_etcd "v3.0.10"
+install_etcd "v3.0.14"
 
 # HOST_GOPATH is passed by the VagrantFile looking at the Mac's environment.
 GUEST_GOPATH=/home/vagrant/gopath
