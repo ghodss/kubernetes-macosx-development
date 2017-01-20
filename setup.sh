@@ -155,6 +155,9 @@ function install_go_packages() {
    # local-up-cluster wants cloudflare ssl toolkit
    sudo -u vagrant -E go get -u github.com/cloudflare/cfssl/cmd/...
 
+   # dlv for debugging
+   sudo -u vagrant -E go get github.com/derekparker/delve/cmd/dlv
+
    echo "Completed install_go_packages"
 }
 
