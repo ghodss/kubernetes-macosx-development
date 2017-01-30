@@ -172,6 +172,10 @@ cat >/etc/profile.d/kubernetes.sh <<EOL
 # Golang setup.
 export GOPATH=${guestGopath}
 export PATH=\$PATH:${guestGopath}/bin
+
+# Add the local cluster related script to the PATH
+export PATH=\$PATH:\$GOPATH/src/k8s.io/kubernetes/cluster
+
 # So docker works without sudo.
 export DOCKER_HOST=tcp://127.0.0.1:2375
 
