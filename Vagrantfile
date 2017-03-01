@@ -39,8 +39,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
 
     config.vm.box = "bento/centos-7.2"
 
-    ip = "10.1.2.3"
-    config.vm.network "private_network", ip: ip
+    # TODO: For some reason the private_network static IP does not work with
+    # nsf mounts.
+    # ip = "10.1.2.3"
+    # config.vm.network "private_network", ip: ip
+    config.vm.network "private_network", type: "dhcp"
 
     config.vm.boot_timeout = 3000
 
@@ -58,7 +61,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
       vb.cpus = $vb_cpus
     end
 
-    config.vm.provision "shell", inline: "HOST_GOPATH=#{$gopath} GUEST_IP=#{ip} /vagrant/setup.sh"
+    # TODO: Disabled static ip because it does not work with NFS mounts.
+    # config.vm.provision "shell", inline: "HOST_GOPATH=#{$gopath} GUEST_IP=#{ip} /vagrant/setup.sh"
+    config.vm.provision "shell", inline: "HOST_GOPATH=#{$gopath}  /vagrant/setup.sh"
   end
 end
 
