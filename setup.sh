@@ -14,7 +14,7 @@ function install_system_tools() {
    # source control tools are so go get works properly.
    # net-tools: for ifconfig
    yum -y install yum-fastestmirror git mercurial subversion curl nc gcc net-tools \
-      wget psmisc lsof vim
+      wget psmisc lsof vim unzip
 }
 
 # Add a repository to yum so that we can download
@@ -117,6 +117,26 @@ function install_etcd() {
    )
 }
 
+# Download and install java8 from oracle
+function install_java() {
+   (
+      cd /vagrant
+      wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.rpm"
+      yum localinstall -y jdk-8u121-linux-x64.rpm
+   )
+}
+
+
+function install_bazel() {
+   (
+      cd /vagrant
+      wget https://github.com/bazelbuild/bazel/releases/download/0.4.4/bazel-0.4.4-installer-darwin-x86_64.sh
+      chmod +x bazel-0.4.4-installer-darwin-x86_64.sh
+      ./bazel-0.4.4-installer-darwin-x86_64.sh
+   )
+
+}
+
 # Knowing the HOST_GOPATH, set up the gopath in the Guest.
 # Not that this setup assumes that the HOST_GOPATH will be in the
 # /Users directory tree in the host machine. The Vagrantfile sets up
@@ -195,7 +215,7 @@ export KUBERNETES_PROVIDER=local
 
 # For some reason basic authentication by default does not work from
 # local-up-cluster.
-export ALLOW_ANY_TOKEN=true
+# export ALLOW_ANY_TOKEN=true
 
 # For convenience.
 alias k="cd \$GOPATH/src/k8s.io/kubernetes"
